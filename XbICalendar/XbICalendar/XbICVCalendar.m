@@ -26,6 +26,21 @@
     return [XbICVCalendar vCalendarfromCompnent:component];
 }
 
+/**
+ * Return an array of the calendar items of the given kind retrieved in a ICS file.
+ *
+ * @author fb
+ * @version gh#1
+ */
++(NSArray *) vCalendarsFromFile: (NSString *) pathname  {
+    
+    XbICFile * file = [XbICFile fileWithPathname:pathname];
+    
+    XbICComponent *  component = (XbICVCalendar *) [file read];
+    
+    return [XbICVCalendar vCalendarsfromComponent:component];
+}
+
 +(instancetype) vCalendarFromString: (NSString *) content {
     
     XbICComponent *  component  = [  XbICComponent componentWithString:content];
@@ -49,6 +64,26 @@
         return nil;
     }
     return (XbICVCalendar *) component;
+}
+
+/**
+ * Return an array of the components of the given kind retrieved in the given component.
+ *
+ * @author fb
+ * @version gh#1
+ */
++(NSArray *) vCalendarsfromComponent: (XbICComponent *)component {
+
+    NSArray *components;
+    
+    if (component.kind ==ICAL_XROOT_COMPONENT) {
+        components = [component componentsOfKind:ICAL_VCALENDAR_COMPONENT];
+    }
+    else {
+        NSLog(@"Error: Unexpected Component in ICS File: %u", component.kind);
+    }
+    
+    return components;
 }
 
 #pragma mark - Object Lifecycle

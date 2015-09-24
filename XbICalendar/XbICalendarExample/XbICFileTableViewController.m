@@ -5,6 +5,8 @@
 #import "XbICFileTableViewController.h"
 #import "XbICViewController.h"
 
+#import "XbICEventsTableViewController.h" //fb:gh#1
+
 @interface XbICFileTableViewController () <UITableViewDataSource, UITableViewDelegate>
 
 @property (nonatomic, strong) NSArray * files;
@@ -64,8 +66,13 @@ static NSString * kCellReuseIdentifier = @"Cell";
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     self.selectedFile = self.files[indexPath.row];
+
+    //fb:gh#1: show the events list instead of the detail of the first event
+    //[self performSegueWithIdentifier:@"detailSegue" sender:self];
+    XbICEventsTableViewController *controller = [[XbICEventsTableViewController alloc] init];
+    controller.fileName = self.selectedFile;
+    [self.navigationController pushViewController:controller animated:YES];
     
-    [self performSegueWithIdentifier:@"detailSegue" sender:self];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
