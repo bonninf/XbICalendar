@@ -16,7 +16,7 @@
 
 @end
 
-static NSString * kCellReuseIdentifier = @"Cell";
+static NSString * kCellReuseIdentifier = @"XbICEventsTableViewControllerCell";
 
 @implementation XbICEventsTableViewController
 
@@ -30,7 +30,9 @@ static NSString * kCellReuseIdentifier = @"Cell";
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
 
     self.calendars = [self eventsFromFile:self.fileName];
-    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:kCellReuseIdentifier];
+    
+    self.tableView.rowHeight = 40;
+    //[self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:kCellReuseIdentifier];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -79,7 +81,7 @@ static NSString * kCellReuseIdentifier = @"Cell";
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kCellReuseIdentifier forIndexPath:indexPath];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kCellReuseIdentifier];
     if(cell == nil ) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:kCellReuseIdentifier];
     }
@@ -105,6 +107,8 @@ static NSString * kCellReuseIdentifier = @"Cell";
         if ([event respondsToSelector:@selector(summary)]) {
             cell.textLabel.text = [event summary];
             NSDateFormatter * df = [[NSDateFormatter alloc] init];
+            [df setDateStyle: NSDateFormatterMediumStyle];
+            [df setTimeStyle:NSDateFormatterShortStyle];
             cell.detailTextLabel.text = [NSString stringWithFormat:@"From %@ to %@", [df stringFromDate:[event dateStart]], [df stringFromDate:[event dateEnd]]];
             cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         }
