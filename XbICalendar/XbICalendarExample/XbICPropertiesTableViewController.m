@@ -10,7 +10,11 @@
 
 @interface XbICPropertiesTableViewController ()
 
+@property (nonatomic, strong) NSDictionary *properties;
+
 @end
+
+static NSString * kCellReuseIdentifier = @"XbICPropertiesTableViewControllerCell";
 
 @implementation XbICPropertiesTableViewController
 
@@ -22,6 +26,10 @@
     
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    
+    //[self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:kCellReuseIdentifier];
+    
+    self.properties = [self propertiesWithEvent:self.event];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -32,26 +40,30 @@
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-#warning Potentially incomplete method implementation.
     // Return the number of sections.
-    return 0;
+    return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-#warning Incomplete method implementation.
     // Return the number of rows in the section.
-    return 0;
+    return [self.properties count];
 }
 
-/*
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:<#@"reuseIdentifier"#> forIndexPath:indexPath];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kCellReuseIdentifier];
+    if(cell == nil ) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:kCellReuseIdentifier];
+    }
     
     // Configure the cell...
+    NSString *key = [[self.properties allKeys] objectAtIndex:indexPath.row];
+    cell.textLabel.text = key;
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@", [self.properties objectForKey:key]];
     
     return cell;
 }
-*/
+
 
 /*
 // Override to support conditional editing of the table view.
@@ -96,5 +108,23 @@
     // Pass the selected object to the new view controller.
 }
 */
+
+#pragma mark - Calendar utils
+
+- (NSDictionary *)propertiesWithEvent:(XbICVEvent *)anEvent
+{
+    //Debug
+    NSLog(@"An event serialized: %@", [anEvent stringSerializeComponent]);
+    
+    NSArray *properties = [anEvent properties];
+    
+    NSMutableDictionary __block *dictionary = [[NSMutableDictionary alloc] initWithCapacity:3];
+    [properties enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        XbICProperty *property = obj;
+        [dictionary setObject:property.value forKey:[property stringWithICalPropertyKind]];
+        
+    }];
+    return [dictionary copy];
+}
 
 @end

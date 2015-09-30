@@ -8,6 +8,7 @@
 
 #import "XbICEventsTableViewController.h"
 #import "XBICalendar.h"
+#import "XbICPropertiesTableViewController.h"
 
 @interface XbICEventsTableViewController ()
 
@@ -87,21 +88,7 @@ static NSString * kCellReuseIdentifier = @"XbICEventsTableViewControllerCell";
     }
     
     // Configure the cell...
-    XbICVEvent * event;
-    if (indexPath.section < [[self.calendars allKeys] count]) {
-        NSString *sectionTitle = [[self sectionTitles] objectAtIndex:indexPath.section];
-        NSArray *events = [self.calendars objectForKey:sectionTitle];
-        if (indexPath.row < [events count]) {
-            event = [events objectAtIndex:indexPath.row];
-        }
-        else {
-            NSLog(@"Debug, issue with this row %ld/%ld of the section %ld", indexPath.row, [events count], indexPath.section);
-        }
-    }
-    else {
-        NSLog(@"Debug, issue with this section %ld by %ld", indexPath.section, [[self.calendars allKeys] count]);
-    }
-    
+    XbICVEvent * event = [self eventFromIndexPath:indexPath];
 
     if (event) {
         if ([event respondsToSelector:@selector(summary)]) {
@@ -121,49 +108,15 @@ static NSString * kCellReuseIdentifier = @"XbICEventsTableViewControllerCell";
 }
 
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    //self.selectedFile = self.files[indexPath.row];
+    
+    XbICPropertiesTableViewController *controller = [[XbICPropertiesTableViewController alloc] init];
+    controller.event = [self eventFromIndexPath:indexPath];
+    [self.navigationController pushViewController:controller animated:YES];
+    
 }
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 #pragma  mark - Table view utils
 
@@ -176,7 +129,28 @@ static NSString * kCellReuseIdentifier = @"XbICEventsTableViewControllerCell";
     return keys;
 }
 
+- (XbICVEvent *)eventFromIndexPath:(NSIndexPath *)indexPath
+{
+    XbICVEvent *event;
+    if (indexPath.section < [[self.calendars allKeys] count]) {
+        NSString *sectionTitle = [[self sectionTitles] objectAtIndex:indexPath.section];
+        NSArray *events = [self.calendars objectForKey:sectionTitle];
+        if (indexPath.row < [events count]) {
+            event = [events objectAtIndex:indexPath.row];
+        }
+        else {
+            NSLog(@"Debug, issue with this row %ld/%ld of the section %ld", indexPath.row, [events count], indexPath.section);
+        }
+    }
+    else {
+        NSLog(@"Debug, issue with this section %ld by %ld", indexPath.section, [[self.calendars allKeys] count]);
+    }
+
+    return event;
+}
+
 #pragma mark - Calendar utils
+
 - (NSDictionary *)eventsFromFile:(NSString *)aFileName
 {
     NSString *path = [[NSBundle mainBundle] resourcePath];
@@ -187,6 +161,7 @@ static NSString * kCellReuseIdentifier = @"XbICEventsTableViewControllerCell";
     NSMutableDictionary __block *mutableCalendars = [NSMutableDictionary dictionaryWithCapacity:[vCalendars count]];
     [vCalendars enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         XbICVCalendar * vCalendar = obj;
+        
         NSArray *events = [vCalendar subcomponents];
         NSMutableArray __block *mutableEvents = [NSMutableArray arrayWithCapacity:[events count]];
         [events enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {

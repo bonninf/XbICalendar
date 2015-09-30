@@ -7,7 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "XBICalendar.h"
 
 @interface XbICPropertiesTableViewController : UITableViewController
+
+@property (nonatomic, strong) XbICVEvent *event;
 
 @end
