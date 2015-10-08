@@ -17,7 +17,6 @@
 +(instancetype) propertyWithIcalProperty: (icalproperty *) p;
 -(icalproperty *) icalBuildProperty ;
 - (NSString *)stringWithICalPropertyKind; //fb:gh#2
-
-
++ (icaltimetype )icaltimetypeFromObject:(id)date isDate:(BOOL)isDate; //fb:gh#3
 
 @end

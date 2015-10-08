@@ -86,6 +86,47 @@
     return components;
 }
 
+/**
+ * Create a calendar with an array of components such as events
+ *
+ * @author fb
+ * @version fb:gh#3
+ */
++ (XbICVCalendar *)calendarWithComponents:(NSArray *)components
+{
+    XbICVCalendar *calendar = [[XbICVCalendar alloc] initWithComponents:components];
+    return calendar;
+}
+
+/**
+ * init an icalendar with an array of components
+ *
+ * @author fb
+ * @version fb:gh#3
+ */
+- (XbICVCalendar *)initWithComponents:(NSArray *)components
+{
+    icalcomponent *icalCal = icalcomponent_new(ICAL_VCALENDAR_COMPONENT);
+    icalcomponent_add_property(icalCal, icalproperty_new_version("2.0"));
+    
+    [components enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        XbICComponent *component = obj;
+        icalcomponent *icalComp = [component icalBuildComponent];
+        icalcomponent_add_component(icalCal, icalComp);
+        if (icalComp) {
+            icalcomponent_free(icalComp);
+        }
+    }];
+    
+    XbICVCalendar *calendar = (XbICVCalendar *)[XbICComponent componentWithIcalComponent:icalCal];
+    
+    if (icalCal) {
+        icalcomponent_free(icalCal);
+    }
+    
+    return calendar;
+}
+
 #pragma mark - Object Lifecycle
 
 -(instancetype) initWithIcalComponent:  (icalcomponent *) c {

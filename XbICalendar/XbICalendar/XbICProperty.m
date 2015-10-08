@@ -224,6 +224,18 @@
     return t;
 }
 
+/**
+ * Class method returning an ical time type object from a NSDate
+ *
+ * @author fb
+ * @version fb:gh#3
+ */
++ (icaltimetype )icaltimetypeFromObject:(id)date isDate:(BOOL)isDate
+{
+    XbICProperty *property = [[XbICProperty alloc] init];
+    return [property icaltimetypeFromObject:date isDate:isDate];
+}
+
 -(NSNumber *) numberFromIntValue: (icalvalue *) v {
     
     return [NSNumber numberWithInt: icalvalue_get_integer(v)];

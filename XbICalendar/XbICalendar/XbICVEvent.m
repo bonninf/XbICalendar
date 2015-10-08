@@ -15,6 +15,138 @@
   return self;
 }
 
+/**
+ * Create an event
+ *
+ * @author fb
+ * @version fb:gh#3
+ */
++ (XbICVEvent *)eventEmpty
+{
+    icalcomponent *component = icalcomponent_new(ICAL_VEVENT_COMPONENT);
+    XbICVEvent *event = [[XbICVEvent alloc] initWithIcalComponent:component];
+    return event;
+}
+
+/**
+ * Create an event with an ek event
+ *
+ * @author fb
+ * @version fb:gh#3
+ */
++ (XbICVEvent *)eventWithEKEvent:(EKEvent *)ekEvent
+{
+    XbICVEvent *event = [[XbICVEvent alloc] initWithEKEvent:ekEvent];
+    return event;
+}
+
+/**
+ * init an event with an ek event
+ *
+ * @author fb
+ * @version fb:gh#3
+ */
+- (XbICVEvent *)initWithEKEvent:(EKEvent *)ekEvent
+{
+    icalcomponent *component = icalcomponent_new(ICAL_VEVENT_COMPONENT);
+    
+    //event identifier
+    icalcomponent_add_property(component, icalproperty_new_uid([ekEvent.eventIdentifier cStringUsingEncoding:NSUTF8StringEncoding]));
+    
+    //Creation date
+    NSDate *aDate = ekEvent.creationDate ? ekEvent.creationDate : [NSDate date];
+    icalcomponent_add_property(component, icalproperty_new_dtstamp([XbICProperty icaltimetypeFromObject:aDate isDate:NO]));
+    
+    //Start date
+    aDate = ekEvent.creationDate ? ekEvent.startDate : [NSDate date];
+    icalcomponent_add_property(component, icalproperty_new_dtstart([XbICProperty icaltimetypeFromObject:aDate isDate:NO]));
+    
+    //End date
+    aDate = ekEvent.creationDate ? ekEvent.endDate : [NSDate date];
+    icalcomponent_add_property(component, icalproperty_new_dtend([XbICProperty icaltimetypeFromObject:aDate isDate:NO]));
+
+    //Title - Summary
+    icalcomponent_add_property(component, icalproperty_new_summary([ekEvent.title cStringUsingEncoding:NSUTF8StringEncoding]));
+    
+    //Location and coordinate
+    icalcomponent_add_property(component, icalproperty_new_location([ekEvent.location cStringUsingEncoding:NSUTF8StringEncoding]));
+
+    //Note
+    if (ekEvent.hasNotes) {
+        icalcomponent_add_property(component, icalproperty_new_description([ekEvent.notes cStringUsingEncoding:NSUTF8StringEncoding]));
+    }
+
+    //Recurrence - RRule
+    if (ekEvent.hasRecurrenceRules) {
+        XbICProperty *property = [[XbICProperty alloc] init];
+        property.kind = ICAL_RRULE_PROPERTY;
+        property.valueKind = ICAL_RECUR_VALUE;
+        property.value = [self dictionaryFromRecurrenceRule:[ekEvent.recurrenceRules firstObject]];
+
+        icalcomponent_add_property(component, [property icalBuildProperty]);
+    }
+
+    
+    //Alarm - vAlarm
+    if (ekEvent.hasAlarms) {
+        EKAlarm *alarm = [ekEvent.alarms firstObject];
+        struct icaltriggertype trigger = icaltriggertype_from_int(alarm.relativeOffset);
+        icalcomponent *icalAlarm = icalcomponent_vanew(ICAL_VALARM_COMPONENT, icalproperty_new_trigger(trigger), 0);
+        icalcomponent_add_component(component, icalAlarm);
+        icalcomponent_free(icalAlarm);
+    }
+    
+    XbICVEvent *event = (XbICVEvent *)[XbICComponent componentWithIcalComponent:component];
+    
+    if (component) {
+        icalcomponent_free(component);
+    }
+    
+    return event;
+}
+
+/**
+ * Return the recipier vEvent updated with category, attendees and coordinate.
+ * The attendee array is formatted with the main ATTENDEE value and the CN parameter value. Other ATTENDEE parameters are not supported at this time by this method.
+ *
+ * @author fb
+ * @version fb:gh#3
+ */
+- (XbICVEvent *)eventUpdatedWithCategory:(NSString *)category attendees:(NSArray *)attendees coordinate:(CLLocationCoordinate2D)coordinate
+{
+    icalcomponent *component = [self icalBuildComponent];
+    
+    //Category
+    icalcomponent_add_property(component, icalproperty_new_categories([category cStringUsingEncoding:NSUTF8StringEncoding]));
+    
+    //Attendees
+    if ([attendees count]) {
+        [attendees enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            NSDictionary *values = obj;
+            NSString *attendeeValue = values[@"attendeeValue"];
+            icalproperty *icalProp = icalproperty_new_attendee([attendeeValue cStringUsingEncoding:NSUTF8StringEncoding]);
+            NSString *cnValue = values[@"cnValue"];
+            icalproperty_add_parameter(icalProp, icalparameter_new_cn([cnValue cStringUsingEncoding:NSUTF8StringEncoding]));
+            icalcomponent_add_property(component, icalProp);
+            icalproperty_free(icalProp);
+        }];
+    }
+    
+    //Coordinate - GEO
+    struct icalgeotype icalGeoType;
+    icalGeoType.lat = coordinate.latitude;
+    icalGeoType.lon = coordinate.longitude;
+    icalcomponent_add_property(component, icalproperty_new_geo(icalGeoType));
+    
+    XbICVEvent *event = (XbICVEvent *)[XbICComponent componentWithIcalComponent:component];
+    
+    if (component) {
+        icalcomponent_free(component);
+    }
+
+    return event;
+}
+
 -(NSDate *) dateStart {
     return (NSDate *)[[self firstPropertyOfKind:ICAL_DTSTART_PROPERTY] value];
 }
@@ -145,6 +277,56 @@ static NSString * mailto = @"mailto";
     }
   }
   return XbICInviteResponseUnknown;
+}
+
+/**
+ * Return a dictionary with a EK Recurrence Rule.
+ *
+ * @author fb
+ * @version fb:gh#3
+ */
+- (NSDictionary *)dictionaryFromRecurrenceRule:(EKRecurrenceRule *)rule
+{
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    NSArray *weekDays;
+
+    icalrecurrencetype_frequency icalFrequency;
+    switch (rule.frequency) {
+        case EKRecurrenceFrequencyDaily:
+            icalFrequency = ICAL_DAILY_RECURRENCE;
+            weekDays = @[@(ICAL_MONDAY_WEEKDAY), @(ICAL_TUESDAY_WEEKDAY), @(ICAL_WEDNESDAY_WEEKDAY), @(ICAL_THURSDAY_WEEKDAY),@(ICAL_FRIDAY_WEEKDAY)];
+            //recurrenceType.by_day = "MO";
+            break;
+            
+        case EKRecurrenceFrequencyWeekly:
+            icalFrequency = ICAL_WEEKLY_RECURRENCE;
+            break;
+        case EKRecurrenceFrequencyMonthly:
+            icalFrequency = ICAL_MONTHLY_RECURRENCE;
+            break;
+        case EKRecurrenceFrequencyYearly:
+            icalFrequency = ICAL_YEARLY_RECURRENCE;
+            break;
+        default:
+            icalFrequency = ICAL_NO_RECURRENCE;
+            break;
+    }
+    [dictionary setObject:@(icalFrequency) forKey:@"freq"];
+    if ([weekDays count]) {
+        [dictionary setObject:weekDays forKey:@"by_day"];
+    }
+    [dictionary setObject:@(rule.interval) forKey:@"interval"];
+    
+    
+    NSDate *endDate = rule.recurrenceEnd.endDate;
+    if (endDate) {
+        [dictionary setObject:endDate forKey:@"until"];
+    }
+    else {
+        [dictionary setObject:@((int)rule.recurrenceEnd.occurrenceCount) forKey:@"count"];
+    }
+    
+    return [dictionary copy];
 }
 
 @end

@@ -6,6 +6,7 @@
 #import "XbICComponent.h"
 #import "XbICPerson.h"
 #import "XbICInvite.h"
+#import <EventKit/EventKit.h> //fb:gh#3
 
 
 @interface XbICVEvent : XbICComponent
@@ -26,5 +27,9 @@
 
 - (void) updateAttendeeWithEmail: (NSString *) email withResponse: (XbICInviteResponse) response;
 - (XbICInviteResponse) lookupAttendeeStatusForEmail: (NSString *) email;
+
++ (XbICVEvent *)eventEmpty; //fb:gh#3
++ (XbICVEvent *)eventWithEKEvent:(EKEvent *)ekEvent; //fb:gh#3
+- (XbICVEvent *)eventUpdatedWithCategory:(NSString *)category attendees:(NSArray *)attendees coordinate:(CLLocationCoordinate2D)coordinate; //fb:gh#3
 
 @end

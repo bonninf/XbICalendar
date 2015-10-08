@@ -13,6 +13,7 @@
 -(NSString *) version;
 -(NSString *) method;
 -(void) setMethod: (NSString *) newMethod;
++ (XbICVCalendar *)calendarWithComponents:(NSArray *)components; //fb:gh#3
 
 
 @end
