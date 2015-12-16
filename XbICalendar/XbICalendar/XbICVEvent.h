@@ -31,5 +31,6 @@
 + (XbICVEvent *)eventEmpty; //fb:gh#3
 + (XbICVEvent *)eventWithEKEvent:(EKEvent *)ekEvent; //fb:gh#3
 - (XbICVEvent *)eventUpdatedWithCategory:(NSString *)category attendees:(NSArray *)attendees coordinate:(CLLocationCoordinate2D)coordinate; //fb:gh#3
+- (XbICVEvent *)eventByReplacingIdentifier:(NSString *)identifier; //fb:gh#4
 
 @end

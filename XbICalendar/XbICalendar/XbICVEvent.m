@@ -147,6 +147,37 @@
     return event;
 }
 
+/**
+ * Return the recipier vEvent updated with uid. If the uid property already exists then it's replaced.
+ * 
+ * @author fb
+ * @version fb:gh#4
+ */
+- (XbICVEvent *)eventByReplacingIdentifier:(NSString *)identifier
+{
+    icalcomponent *component = [self icalBuildComponent];
+    
+    if ([identifier length]) {
+        //Remove the uid property if exist
+        icalproperty *property;
+        while ((property = icalcomponent_get_first_property(component, ICAL_UID_PROPERTY))) {
+            icalcomponent_remove_property(component, property);
+            icalproperty_free(property);
+        }
+        
+        //Update the event with the new event identifier
+        icalcomponent_add_property(component, icalproperty_new_uid([identifier cStringUsingEncoding:NSUTF8StringEncoding]));
+    }
+    
+    XbICVEvent *event = (XbICVEvent *)[XbICComponent componentWithIcalComponent:component];
+    
+    if (component) {
+        icalcomponent_free(component);
+    }
+    
+    return event;
+}
+
 -(NSDate *) dateStart {
     return (NSDate *)[[self firstPropertyOfKind:ICAL_DTSTART_PROPERTY] value];
 }
