@@ -24,6 +24,7 @@
 -(NSArray *) sequences;
 -(NSString *) status;
 -(NSString *) summary;
+-(NSString *) category;
 
 - (void) updateAttendeeWithEmail: (NSString *) email withResponse: (XbICInviteResponse) response;
 - (XbICInviteResponse) lookupAttendeeStatusForEmail: (NSString *) email;

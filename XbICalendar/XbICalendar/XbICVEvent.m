@@ -239,6 +239,16 @@
     return [self propertiesOfKind:ICAL_ATTENDEE_PROPERTY];
 }
 
+/**
+ * Return the first category
+ *
+ * @author fb
+ * @version fb:gh#5
+ */
+-(NSString *) category {
+    return (NSString *)[[self firstPropertyOfKind:ICAL_CATEGORIES_PROPERTY] value];
+}
+
 static NSString * mailto = @"mailto";
 -(NSString *) stringFixUpEmail: email {
     
