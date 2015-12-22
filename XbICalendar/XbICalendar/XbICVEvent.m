@@ -269,6 +269,32 @@
     return coordinate;
 }
 
+/**
+ * Return the first alarm
+ *
+ * @author fb
+ * @version fb:gh#6
+ */
+-(XbICComponent *) firstAlarm
+{
+    XbICComponent *vAlarm = [self firstComponentOfKind:ICAL_VALARM_COMPONENT];
+    
+    return vAlarm;
+}
+
+/**
+ * Return the first alarm
+ *
+ * @author fb
+ * @version fb:gh#6
+ */
+-(NSDictionary *) firstAlarmDuration
+{
+    NSDictionary *durationValues = (NSDictionary *)[[[self firstAlarm] firstPropertyOfKind:ICAL_TRIGGER_PROPERTY] value];
+    
+    return durationValues;
+}
+
 static NSString * mailto = @"mailto";
 -(NSString *) stringFixUpEmail: email {
     

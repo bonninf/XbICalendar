@@ -26,6 +26,8 @@
 -(NSString *) summary;
 -(NSString *) category;
 -(CLLocationCoordinate2D) geo;
+-(XbICComponent *) firstAlarm;
+-(NSDictionary *) firstAlarmDuration;
 
 - (void) updateAttendeeWithEmail: (NSString *) email withResponse: (XbICInviteResponse) response;
 - (XbICInviteResponse) lookupAttendeeStatusForEmail: (NSString *) email;
