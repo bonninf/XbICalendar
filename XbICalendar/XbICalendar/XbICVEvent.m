@@ -249,6 +249,26 @@
     return (NSString *)[[self firstPropertyOfKind:ICAL_CATEGORIES_PROPERTY] value];
 }
 
+/**
+ * Return the coordinate from the geo property
+ *
+ * @author fb
+ * @version fb:gh#7
+ */
+-(CLLocationCoordinate2D) geo {
+    CLLocationCoordinate2D coordinate = CLLocationCoordinate2DMake(0.0, 0.0);
+    
+    NSString *geoString = (NSString *)[[self firstPropertyOfKind:ICAL_GEO_PROPERTY] value];
+    NSArray *geoComponents = [geoString componentsSeparatedByString:@";"];
+    if ([geoComponents count] == 2) {
+        double lat = [geoComponents[0] doubleValue];
+        double lon = [geoComponents[1] doubleValue];
+        coordinate = CLLocationCoordinate2DMake(lat, lon);
+    }
+    
+    return coordinate;
+}
+
 static NSString * mailto = @"mailto";
 -(NSString *) stringFixUpEmail: email {
     

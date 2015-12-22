@@ -25,6 +25,7 @@
 -(NSString *) status;
 -(NSString *) summary;
 -(NSString *) category;
+-(CLLocationCoordinate2D) geo;
 
 - (void) updateAttendeeWithEmail: (NSString *) email withResponse: (XbICInviteResponse) response;
 - (XbICInviteResponse) lookupAttendeeStatusForEmail: (NSString *) email;
