@@ -295,6 +295,50 @@
     return durationValues;
 }
 
+/**
+ * Return the first recurrence rule
+ *
+ * @author fb
+ * @version fb:gh#7
+ */
+-(NSDictionary *) firstRecurrence
+{
+    NSDictionary *result;
+    
+    XbICProperty * property = [self firstPropertyOfKind:ICAL_RRULE_PROPERTY];
+    icalproperty * ical_property = [property icalBuildProperty];
+    struct icalrecurrencetype ical_recurrencetype = icalproperty_get_rrule(ical_property);
+    
+    NSDictionary *recurrenceValues = (NSDictionary *)property.value;
+    int interval = [recurrenceValues[@"interval"] intValue];
+    NSDate *endDate = recurrenceValues[@"until"];
+    if (interval > 0 && endDate) {
+        icalrecurrencetype_frequency icalFrequency = [recurrenceValues[@"freq"] intValue];
+        EKRecurrenceFrequency ekFrequency;
+        switch (icalFrequency) {
+            case ICAL_DAILY_RECURRENCE:
+                ekFrequency = EKRecurrenceFrequencyDaily;
+                break;
+            case ICAL_WEEKLY_RECURRENCE:
+                ekFrequency = EKRecurrenceFrequencyWeekly;
+                break;
+            case ICAL_MONTHLY_RECURRENCE:
+                ekFrequency = EKRecurrenceFrequencyMonthly;
+                break;
+            case ICAL_YEARLY_RECURRENCE:
+                ekFrequency = EKRecurrenceFrequencyYearly;
+                break;
+            default:
+                ekFrequency = -1;
+                break;
+        }
+        
+        result = @{@"freq": @(ekFrequency), @"interval": @(interval), @"until": endDate};
+    }
+    
+    return result;
+}
+
 static NSString * mailto = @"mailto";
 -(NSString *) stringFixUpEmail: email {
     
